@@ -1,3 +1,4 @@
+from transformers import pipeline
 from datetime import datetime
 import csv
 import sys
@@ -7,16 +8,16 @@ class Journal:
     def __init__(self):
         self.file_name = "journal.csv"
         with open(self.file_name,'a') as file:
-            writer = csv.DictWriter(file, fieldnames= ["date", "dailyJournal"])
+            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "accuracy", "dailyJournal"])
             if file.tell() == 0:
                 writer.writeheader()
 
 
     # Write the journal of the Date given into journal.csv file
-    def write_entry(self,entryDate,journal):
+    def write_entry(self,entryDate,journal,sentiments):
         with open(self.file_name,'a', newline='\n') as file:
-            writer = csv.DictWriter(file, fieldnames= ["date", "dailyJournal"])
-            writer.writerow({"date": entryDate, "dailyJournal" : journal})
+            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "accuracy", "dailyJournal"])
+            writer.writerow({"date": entryDate, "dailyJournal" : journal, "sentiment" : sentiments['label'], "accuracy" : sentiments['score']})
 
 
     # Return the journal of the Date provided if not avaliable returns None
@@ -52,8 +53,9 @@ def main():
             print("enter your jounral below :-")
             print('-'*108)
             user_journal = input()
+            sentiments = calculate_sentiment(user_journal)
             journal = Journal()
-            journal.write_entry(user_date,user_journal)
+            journal.write_entry(user_date,user_journal,sentiments)
             print('-'*108)
             print("Entry Saved.\n")
             break
@@ -94,6 +96,24 @@ def valid_date(givenDate):
         return weekday
     except ValueError:
         return False
+    
+
+def calculate_sentiment(journal):
+    """
+    function to calculate the sentiment of a journal,
+    it will return a dictonary like {'label': '3 stars', 'score': 0.79}
+    label:- 5 stars = very good
+            4 stars = good
+            3 stars = netural
+            2 stars = bad
+            1 stars = very bad
+    score:- displays the correctness level of provided stars.
+    """
+    sentiment_pipeline = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
+    result = sentiment_pipeline(journal)
+    result = result[0]
+    result['score'] = f"{result['score']:.2f}"
+    return result
 
 
 if __name__ == "__main__":
