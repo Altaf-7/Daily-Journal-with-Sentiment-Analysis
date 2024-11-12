@@ -1,8 +1,9 @@
+from datetime import datetime
 import csv
 import sys
-import datetime
 
 class Journal:
+    # Initalize a csv called journal.csv and write its fieldnames(if not already)
     def __init__(self):
         self.file_name = "journal.csv"
         with open(self.file_name,'a') as file:
@@ -11,12 +12,14 @@ class Journal:
                 writer.writeheader()
 
 
+    # Write the journal of the Date given into journal.csv file
     def write_entry(self,entryDate,journal):
         with open(self.file_name,'a', newline='\n') as file:
             writer = csv.DictWriter(file, fieldnames= ["date", "dailyJournal"])
             writer.writerow({"date": entryDate, "dailyJournal" : journal})
 
 
+    # Return the journal of the Date provided if not avaliable returns None
     def read_entry(self,seachDate):
         with open(self.file_name,'r') as file:
             reader = csv.DictReader(file)
@@ -28,6 +31,7 @@ class Journal:
 
 def main():
     while True:
+        # Interactive Menu for the user
         print("\nJournal Menu:")
         print("1. Write a new entry")
         print("2. Read previous entries")
@@ -36,7 +40,15 @@ def main():
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            user_date = input("Date: ")
+            # Checks for a Valid Date
+            while True:
+                user_date = input("Enter Date (DD-MM-YYYY): ")
+                if valid_date(user_date):
+                    break
+                else:
+                    print("Enter a Valid Date in format DD-MM-YYYY.")
+
+            # Prompt user to write the journal
             print("enter your jounral below :-")
             print('-'*108)
             user_journal = input()
@@ -47,12 +59,21 @@ def main():
             break
 
         elif choice == '2':
-            query_date = input("Query Date: ")
+            # Checks for a Valid Date
+            while True:
+                query_date = input("Query Date (DD-MM-YYYY): ")
+                if valid_date(query_date):
+                    break
+                else:
+                    print("Enter a Valid Date in format DD-MM-YYYY.")
+
+            # Prints the Journal of the date provided
             journal = Journal()
             query = journal.read_entry(query_date)
             if query != None:
                 print('-'*108)
-                print(query_date, end='\n\n')
+                print(query_date)
+                print(valid_date(query_date), end='\n\n')
                 print(query)
                 print('-'*108)
             else:
@@ -61,6 +82,18 @@ def main():
 
         elif choice == '3':
             sys.exit()
+
+
+def valid_date(givenDate):
+    """
+    function to check for a Valid Date entered and also returns the day of the week.
+    """
+    try:
+        date_obj = datetime.strptime(givenDate, '%d-%m-%Y')
+        weekday = date_obj.strftime('%A')  # %A = Wednesday, %a = Wed, %w = 3 (0 = Sunday)
+        return weekday
+    except ValueError:
+        return False
 
 
 if __name__ == "__main__":
