@@ -1,3 +1,5 @@
-date,sentiment,accuracy,dailyJournal
-17-11-2024,4 stars,0.46,today i am feeling good.
-18-11-2024,3 stars,0.64,today i am feeling okay.
+date,sentiment,dailyJournal
+18-11-2024,5.0,today i am feeling awesome
+19-11-2024,4.12,today i felt good.
+20-11-2024,3.51,today was an okay okay day.
+21-11-2024,4.17,"Today was a pretty good day overall. I managed to complete all my tasks at work, which gave me a nice sense of accomplishment. During lunch, I tried a new café, and the food was delicious. I even had some time in the evening to relax and read a book I've been wanting to start. There weren’t any big surprises, just a calm and satisfying day."

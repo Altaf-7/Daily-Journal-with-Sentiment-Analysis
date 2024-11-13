@@ -8,7 +8,7 @@ class Journal:
     def __init__(self):
         self.file_name = "journal.csv"
         with open(self.file_name,'a') as file:
-            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "accuracy", "dailyJournal"])
+            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "dailyJournal"])
             if file.tell() == 0:
                 writer.writeheader()
 
@@ -16,8 +16,8 @@ class Journal:
     # Write the journal of the Date given into journal.csv file
     def write_entry(self,entryDate,journal,sentiments):
         with open(self.file_name,'a', newline='\n') as file:
-            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "accuracy", "dailyJournal"])
-            writer.writerow({"date": entryDate, "dailyJournal" : journal, "sentiment" : sentiments['label'], "accuracy" : sentiments['score']})
+            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "dailyJournal"])
+            writer.writerow({"date": entryDate, "dailyJournal" : journal, "sentiment" : sentiments})
 
 
     # Return the journal of the Date provided if not avaliable returns None
@@ -28,7 +28,39 @@ class Journal:
                 if row["date"] == seachDate:
                     return row["dailyJournal"]
             return None
+        
 
+    # Checks if there already exist an journal on provided date
+    def checks_entry(self,entryDate):
+        with open(self.file_name,'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row["date"] == entryDate:
+                    print("A journal already exist on",entryDate)
+                    while True:
+                        confirmation = input("You wish to overwrite it (yes/no): ")
+                        if confirmation == "yes":
+                            return True
+                        elif confirmation == "no":
+                            sys.exit()
+            return False
+
+
+    # rewrite the journal and sentiment part of a given date
+    def overwrite_entry(self,entryDate,journal,sentiments):
+        with open(self.file_name, 'r') as file:
+            reader = csv.DictReader(file)
+            rows = []
+            for row in reader:
+                if row["date"] == entryDate:
+                    row['dailyJournal'] = journal
+                    row['sentiment'] = sentiments
+                rows.append(row)
+
+        with open(self.file_name,'w') as file:
+            writer = csv.DictWriter(file, fieldnames= ["date", "sentiment", "dailyJournal"])
+            writer.writeheader()
+            writer.writerows(rows)
 
 def main():
     while True:
@@ -49,16 +81,26 @@ def main():
                 else:
                     print("Enter a Valid Date in format DD-MM-YYYY.")
 
-            # Prompt user to write the journal
-            print("enter your jounral below :-")
-            print('-'*108)
-            user_journal = input()
-            sentiments = calculate_sentiment(user_journal)
+            # write/overwrite the journal accordingly
             journal = Journal()
-            journal.write_entry(user_date,user_journal,sentiments)
-            print('-'*108)
-            print("Entry Saved.\n")
-            break
+            if journal.checks_entry(user_date):
+                print("enter your jounral below :-")
+                print('-'*108)
+                user_journal = input()
+                sentiment_score = calculate_sentiment(user_journal)
+                journal.overwrite_entry(user_date,user_journal,sentiment_score)
+                print('-'*108)
+                print("Entry Saved.\n")
+                break
+            else:
+                print("enter your jounral below :-")
+                print('-'*108)
+                user_journal = input()
+                sentiment_score = calculate_sentiment(user_journal)
+                journal.write_entry(user_date,user_journal,sentiment_score)
+                print('-'*108)
+                print("Entry Saved.\n")
+                break
 
         elif choice == '2':
             # Checks for a Valid Date
@@ -101,20 +143,21 @@ def valid_date(givenDate):
 def calculate_sentiment(journal):
     """
     function to calculate the sentiment of a journal,
-    it will return a dictonary like {'label': '3 stars', 'score': 0.79}
-    label:- 5 stars = very good
+    it will return a average score between 1 to 5.
+    where:- 5 stars = very good
             4 stars = good
             3 stars = netural
             2 stars = bad
             1 stars = very bad
-    score:- displays the correctness level of provided stars.
     """
     sentiment_pipeline = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
-    result = sentiment_pipeline(journal)
-    result = result[0]
-    result['score'] = f"{result['score']:.2f}"
-    return result
+    journal = journal.split('.')
+    scores = [sentiment_pipeline(line)[0]['label'] for line in journal]
 
+    star_values = {"1 star": 1, "2 stars": 2, "3 stars": 3, "4 stars": 4, "5 stars": 5}
+    numeric_scores = [star_values[score] for score in scores]
+    average_score = sum(numeric_scores) / len(numeric_scores)
+    return round(average_score,2)
 
 if __name__ == "__main__":
     main()
