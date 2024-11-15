@@ -1,4 +1,5 @@
 from transformers import pipeline
+import matplotlib.pyplot as plt
 from datetime import datetime
 import csv
 import sys
@@ -62,13 +63,48 @@ class Journal:
             writer.writeheader()
             writer.writerows(rows)
 
+
+    # visualize the sentiments using matplotlib
+    def visualize_sentiments(self):
+        dates = []
+        sentiment_score = []
+        with open(self.file_name, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                dates.append(datetime.strftime(row['date'], "%d-%m-%Y").date())
+                sentiment_score.append(float(row['sentiment']))
+
+        sorted_data = sorted(zip(dates, sentiment_score))
+        dates, sentiment_score = zip(*sorted_data)
+
+        plt.plot(dates, sentiment_score, c= "#4169E1", marker= 'o', label= "Sentiments Over Time")
+        plt.xlabel("Date")
+        plt.ylabel("Sentiments")
+        plt.title("Daily Sentiment Analysis")
+
+        # display datetime object as only date with format "DD-MM-YYYY"
+        plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter("%d-%m-%Y")) 
+
+        # get currect axes and set the xticks to date (to eliminate duplicate dates over a region)
+        plt.gca().set_xticks(dates)
+        plt.xticks(rotation=45)
+        plt.yticks(
+            [1, 2, 3, 4, 5],  # Tick positions
+            ["Very Bad", "Bad", "Neutral", "Good", "Very Good"]  # Custom labels
+        )
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+
 def main():
     while True:
         # Interactive Menu for the user
         print("\nJournal Menu:")
         print("1. Write a new entry")
         print("2. Read previous entries")
-        print("3. Exit")
+        print("3. Visualize Sentiment trends")
+        print("4. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -125,6 +161,10 @@ def main():
             break
 
         elif choice == '3':
+            journal = Journal()
+            journal.visualize_sentiments()
+
+        elif choice == '4':
             sys.exit()
 
 
