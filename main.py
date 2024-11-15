@@ -71,7 +71,7 @@ class Journal:
         with open(self.file_name, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                dates.append(datetime.strftime(row['date'], "%d-%m-%Y").date())
+                dates.append(datetime.strptime(row['date'], "%d-%m-%Y").date())
                 sentiment_score.append(float(row['sentiment']))
 
         sorted_data = sorted(zip(dates, sentiment_score))
@@ -95,6 +95,9 @@ class Journal:
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+        # if you want to save the graph as png, uncomment the line below
+        # plt.savefig("sentiment_graph.png")
 
 
 def main():
@@ -163,6 +166,7 @@ def main():
         elif choice == '3':
             journal = Journal()
             journal.visualize_sentiments()
+            break
 
         elif choice == '4':
             sys.exit()
